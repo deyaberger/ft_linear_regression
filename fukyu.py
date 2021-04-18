@@ -30,6 +30,12 @@ class Dataset():
     def __len__(self):
         return (self.data.shape[0])
     
+    def __str__(self):
+        out = ""
+        for i in range(len(self)):
+            out += str(self.data[i])
+            out += "\n"
+    
     
 class Irma():
     def __init__(self, dataset):
@@ -118,7 +124,7 @@ class Irma():
     def __repr__(self):
         return (f"error: {self.newcost}, \tthetas: [{self.theta0}, {self.theta1}], lr: {self.learning_rate}")
         
-        
-datasetto =  Dataset(path = "data.csv")
-irma = Irma(datasetto)
-irma.training_loop()
+if __name__ == "__main__" :
+    datasetto =  Dataset(path = "data.csv")
+    irma = Irma(datasetto)
+    irma.training_loop()
