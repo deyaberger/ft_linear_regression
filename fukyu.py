@@ -1,6 +1,10 @@
 import pandas as pd
 import time
+import matplotlib.pyplot as plt
 from graphik import Graph
+import numpy as np
+import json
+
 
 class Datapoint():
     def __init__(self, km, price, normalized_km):
@@ -42,9 +46,10 @@ class Dataset():
     def normalize_km(self):
         list_norm = []
         min_kms, max_kms = self.kms.min(), self.kms.max()
-        for i in range(len(self.data)):
-            list_norm.append(self.normalize(self.data["km"][i], min_kms, max_kms))
-        self.data["normalized_km"] = list_norm
+        kms = self.kms.to_numpy()
+        kms = kms / np.sum(kms)
+        self.data["normalized_km"] = kms
+        
 
     def __getitem__(self, i):
         return Datapoint(self.data["km"][i], self.data["price"][i], self.data["normalized_km"][i])
@@ -77,8 +82,8 @@ class Irma():
         self.middletheta0 = 0.0
         self.middletheta1 = 0.0
         self.learning_rate = 0.01
-        self.learning_rate_decay = 1.0 / 20
-        self.minimal_improvement = 0.000001
+        self.learning_rate_decay = 1.0 / 2
+        self.minimal_improvement = 1
         self.newcost = 0
         self.oldcost = 0
         self.middle_cost = 0
@@ -118,8 +123,8 @@ class Irma():
         sum_errors_t1 = 0.0
         for elem in self.dataset:
             sum_errors_t0 += self.error_datapoint(elem, self.theta0, self.theta1)
-            sum_errors_t1 += (self.error_datapoint(elem, self.theta0, self.theta1) * elem.km) ### TODO normalized_km
-        temp0 = self.theta0 - (self.learning_rate / len(self.dataset) * sum_errors_t0)
+            sum_errors_t1 += (self.error_datapoint(elem, self.theta0, self.theta1) * elem.normalized_km) ### TODO normalized_km
+        temp0 = self.theta0 - 10 * (self.learning_rate / len(self.dataset) * sum_errors_t0)
         temp1 = self.theta1 - (self.learning_rate / len(self.dataset) * sum_errors_t1)
         self.theta0 = temp0
         self.theta1 = temp1
@@ -144,35 +149,50 @@ class Irma():
         go_on = True
         if plot == True:
             graphismus = Graph(irma)
-            time.sleep(2)
+            # time.sleep(2)
         self.newcost = self.mean_squared_error_dataset(self.theta0, self.theta1)
+        print(self)
         i = 0
         while (go_on):
-            if plot == True:
+            if plot == True and i % 100 == 0:
                 graphismus.update_linear_graph(self.theta0, self.theta1)
                 graphismus.update_mse_graph(self.newcost, i)
                 if graphismus.interactif == True:
-                    plt.figure(1)
+                    plt.figure(1) 
                     plt.waitforbuttonpress()
+            tmpoldcost = self.oldcost
             self.oldcost = self.newcost
             self.update_thetas()
             self.newcost = self.mean_squared_error_dataset(self.theta0, self.theta1)
             go_on = self.should_i_keep_learning()
             if (self.middle_cost < self.newcost and self.middle_cost < self.oldcost):
                 self.decrease_and_assign(self.middle_theta0, self.middle_theta1)
+            self.learning_rate = self.learning_rate * 1.5
             if (self.newcost > self.oldcost):
-                self.decrease_and_assign(self.oldtheta0, self.oldtheta1)
-            print(self)
+                self.learning_rate = self.learning_rate * self.learning_rate_decay
+                self.theta0, self.theta1 = self.oldtheta0, self.oldtheta1
+                self.newcost = self.oldcost
+                self.oldcost = tmpoldcost
+            if i % 100 == 0:
+                print(self)
             i += 1
+
             
     def __str__(self):
-        return (f"error: {self.newcost:.2E}, \tthetas: [{self.theta0}, {self.theta1}], lr: {self.learning_rate}")
+        return (f"error: {self.newcost:.2E}, \tthetas: [{self.theta0}, \t{self.theta1}], \tlr: {self.learning_rate}")
 
     def __repr__(self):
-        return (f"error: {self.newcost:.2E}, \tthetas: [{self.theta0}, {self.theta1}], lr: {self.learning_rate}")
+        return (f"error: {self.newcost:.2E}, \tthetas: [{self.theta0}, \t{self.theta1}], \tlr: {self.learning_rate}")
         
 if __name__ == "__main__" :
     datasetto =  Dataset(path = "data.csv")
     irma = Irma(datasetto)
-    irma.training_loop(plot = True)
+    irma.training_loop()
+    # new_infos = {"t0" : irma.theta0, "t1" : irma.theta1}
+    # with open("t0_t1.json", "w") as f:
+    #     json.dump(new_infos, f)
+    # with open("t0_t1.json", "r") as f:
+    #     infos = json.load(f)
+    # graphikus = Graph(irma)
+    # graphikus.update_linear_graph(infos["t0"], infos["t1"])
     plt.show()
