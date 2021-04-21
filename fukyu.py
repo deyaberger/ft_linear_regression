@@ -141,6 +141,7 @@ class Irma():
         self.theta0, self.theta1 = theta0, theta1
         
     def init_graph(self):
+        plt.figure(1)
         plt.title("Linear Regression")
         plt.xlabel("Mileage (km)")
         plt.ylabel("Prices (USD)")
@@ -152,24 +153,49 @@ class Irma():
         current_plot = plt.plot(x, y, color="blue", label="predict function")
         plt.legend()
         plt.grid(True)
-        plt.pause(0.01)
-        return (x, current_plot)
+        plt.pause(0.001)
+        plt.figure(2)
+        plt.title("MSE cost evolution")
+        plt.xlabel("Episode")
+        plt.ylabel("Cost")
+        c = [3]
+        e = [0]
+        current_cost = plt.plot(e, c, color="red")
+        plt.pause(0.5)
+        return (x, current_plot, c, e, current_cost)
     
-    def update_graph(self, x, current_plot):
+    def update_graph(self, x, current_plot, c, e, current_cost):
+        plt.figure(1)
         y = self.theta0 + (self.theta1 * x)
         line = current_plot.pop(0)
         line.remove()
         current_plot = plt.plot(x, y, color="blue", label="predict function")
-        plt.pause(0.01)
-        return (x, current_plot)
+        plt.pause(0.001)
+        plt.figure(2)
+        line = current_cost.pop(0)
+        line.remove()
+        current_cost = plt.plot(e, c, color="red")
+        plt.pause(0.5)
+        return (x, current_plot, c, e, current_cost)
     
     def test_for_graph(self):
-        x, current_plot = self.init_graph()
+        x, current_plot, c, e, current_cost = self.init_graph()
+        time.sleep(4)
         for i in range(15):
             print(f"i = {i}")
             self.theta0 += 100
             self.theta1 -= 0.01
-            current_plot = self.update_graph(x, current_plot)
+            c.append(c[i] - 0.3)
+            e.append(i)
+            x, current_plot, c, e, current_cost = self.update_graph(x, current_plot, c, e, current_cost)
+        # fig, ax = plt.subplots()
+        # x = np.linspace(0, self.dataset.kms.max())
+        # y = self.theta0 + (self.theta1 * x)
+        # kms = list(self.dataset.kms)
+        # prices = list(self.dataset.prices)
+        # ax.plot(x, y)
+        # ax.scatter(kms, prices, color = "red", label="prices by km")
+        # ax.set_title('Linear Regression')
             
 
     def training_loop(self, plot=False):
