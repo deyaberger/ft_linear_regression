@@ -3,6 +3,7 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+from math import log
 
 class Graph():
     def __init__(self, irma, interactif=False):
@@ -17,10 +18,10 @@ class Graph():
         plt.title("Linear Regression")
         plt.xlabel("Mileage (km)")
         plt.ylabel("Prices (USD)")
-        kms = list(irma.dataset.kms)
-        prices = list(irma.dataset.prices)
+        kms = list(irma.dataset.standardized_kms)
+        prices = list(irma.dataset.standardized_prices)
         plt.scatter(kms, prices, color = "red", label="dataset values")
-        self.linear_x = np.linspace(0, irma.dataset.kms.max())
+        self.linear_x = np.linspace(irma.dataset.standardized_kms.min(), irma.dataset.standardized_kms.max())
         plt.legend()
         plt.grid(True)
         fig.canvas.manager.window.attributes("-topmost", 1)
@@ -53,6 +54,7 @@ class Graph():
         plt.figure(2)
         self.remove_plot(self.mse_curve)
         self.mse_x.append(episode)
-        self.mse_y.append(cost)
+        self.mse_y.append(log(cost, 10))
         self.mse_curve = plt.plot(self.mse_x, self.mse_y, color="orange", label="cost evolution")
         plt.pause(0.001)
+    

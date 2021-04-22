@@ -7,52 +7,57 @@ import json
 
 
 class Datapoint():
-    def __init__(self, km, price, normalized_km):
+    def __init__(self, km, price, standardized_km, standardized_price):
         self.km = km
         self.price = price
-        self.normalized_km = normalized_km
+        self.standardized_km = standardized_km
+        self.standardized_price = standardized_price
 
     def __str__(self):
-        return (f"km: {self.km}, price {self.price}, normalized_km = {self.normalized_km}")
+        return (f"km: {self.km}, price {self.price}, standardized_km = {self.standardized_km}, standardized_price = {self.standardized_price}")
         
     def __repr__(self):
-        return (f"km: {self.km}, price {self.price}, normalized_km = {self.normalized_km}")
-
+        return (f"km: {self.km}, price {self.price}, standardized_km = {self.standardized_km}, standardized_price = {self.standardized_price}")
+    
 
 class Dataset():
     def __init__(self, data = None, path = None):
-        self.initial_data = data
         self.data = data
         self.index = 0
         if (path != None):
             self.import_csv(path)
+        self.get_mean_std()
+        self.kms = self.data["km"]
+        self.prices = self.data["price"]
+        self.standardize_data()
+        self.standardized_kms = self.data["standardized_kms"]
+        self.standardized_prices = self.data["standardized_prices"]
 
     def import_csv(self, path):
         self.data = pd.read_csv(path)
         self.data["km"] = pd.to_numeric(self.data["km"], downcast="float")
         self.data["price"] = pd.to_numeric(self.data["price"], downcast="float")
-        self.kms = self.data["km"]
-        self.prices = self.data["price"]
-        self.normalize_km()
-
-    def normalize(self, value, min_value, max_value):
-        if value == max_value or max_value == min_value:
-            return 1
-        if value == min_value:
-            return 0
-        normalized_value = (value - min_value) / (max_value - min_value)
-        return (normalized_value)
-
-    def normalize_km(self):
-        list_norm = []
-        min_kms, max_kms = self.kms.min(), self.kms.max()
-        kms = self.kms.to_numpy()
-        kms = kms / np.sum(kms)
-        self.data["normalized_km"] = kms
+    
+    def get_mean_std(self):
+        self.mean_kms = self.data.mean()["km"]
+        self.mean_prices = self.data.mean()["price"]
+        self.std_kms = self.data.std()["km"]
+        self.std_prices = self.data.std()["price"]
+    
+    def standardize_data(self):
+        standardized_kms, standardized_prices = [], []
+        for ind in self.data.index:
+            km, price = self.data["km"][ind], self.data["price"][ind]
+            s_km = (km - self.mean_kms) / self.std_kms
+            s_p = (price - self.mean_prices) / self.std_prices
+            standardized_kms.append(s_km)
+            standardized_prices.append(s_p)
+        self.data["standardized_kms"] = standardized_kms
+        self.data["standardized_prices"] = standardized_prices
         
 
     def __getitem__(self, i):
-        return Datapoint(self.data["km"][i], self.data["price"][i], self.data["normalized_km"][i])
+        return Datapoint(self.data["km"][i], self.data["price"][i], self.data["standardized_kms"][i], self.data["standardized_prices"][i])
     
 
     def __len__(self):
@@ -82,19 +87,19 @@ class Irma():
         self.middletheta0 = 0.0
         self.middletheta1 = 0.0
         self.learning_rate = 0.01
-        self.learning_rate_decay = 1.0 / 2
-        self.minimal_improvement = 1
+        self.learning_rate_decay = 1.0 / 20
+        self.minimal_improvement = 0.000001
         self.newcost = 0
         self.oldcost = 0
         self.middle_cost = 0
 
 
-    def predict_price(self, theta0, theta1, km):
-        return (theta0 + (theta1 * km))
+    def predict_price(self, theta0, theta1, standardized_km):
+        return (theta0 + (theta1 * standardized_km))
 
 
     def error_datapoint(self, datapoint, theta0, theta1):
-        error = self.predict_price(theta0, theta1, datapoint.km) - datapoint.price
+        error = self.predict_price(theta0, theta1, datapoint.standardized_km) - datapoint.standardized_price
         return (error)
 
 
@@ -123,8 +128,8 @@ class Irma():
         sum_errors_t1 = 0.0
         for elem in self.dataset:
             sum_errors_t0 += self.error_datapoint(elem, self.theta0, self.theta1)
-            sum_errors_t1 += (self.error_datapoint(elem, self.theta0, self.theta1) * elem.normalized_km) ### TODO normalized_km
-        temp0 = self.theta0 - 10 * (self.learning_rate / len(self.dataset) * sum_errors_t0)
+            sum_errors_t1 += (self.error_datapoint(elem, self.theta0, self.theta1) * elem.standardized_km) ### TODO normalized_km
+        temp0 = self.theta0 - (self.learning_rate / len(self.dataset) * sum_errors_t0)
         temp1 = self.theta1 - (self.learning_rate / len(self.dataset) * sum_errors_t1)
         self.theta0 = temp0
         self.theta1 = temp1
@@ -154,7 +159,7 @@ class Irma():
         print(self)
         i = 0
         while (go_on):
-            if plot == True and i % 100 == 0:
+            if plot == True:
                 graphismus.update_linear_graph(self.theta0, self.theta1)
                 graphismus.update_mse_graph(self.newcost, i)
                 if graphismus.interactif == True:
@@ -173,8 +178,7 @@ class Irma():
                 self.theta0, self.theta1 = self.oldtheta0, self.oldtheta1
                 self.newcost = self.oldcost
                 self.oldcost = tmpoldcost
-            if i % 100 == 0:
-                print(self)
+            # print(self)
             i += 1
 
             
@@ -186,8 +190,9 @@ class Irma():
         
 if __name__ == "__main__" :
     datasetto =  Dataset(path = "data.csv")
+    t = time.time()
     irma = Irma(datasetto)
-    irma.training_loop()
+    irma.training_loop(plot = False)
     # new_infos = {"t0" : irma.theta0, "t1" : irma.theta1}
     # with open("t0_t1.json", "w") as f:
     #     json.dump(new_infos, f)
@@ -195,4 +200,6 @@ if __name__ == "__main__" :
     #     infos = json.load(f)
     # graphikus = Graph(irma)
     # graphikus.update_linear_graph(infos["t0"], infos["t1"])
+    t1 = time.time()
+    print(f"total time = {t1 - t}")
     plt.show()
