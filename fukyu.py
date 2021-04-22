@@ -48,8 +48,8 @@ class Dataset():
         standardized_kms, standardized_prices = [], []
         for ind in self.data.index:
             km, price = self.data["km"][ind], self.data["price"][ind]
-            s_km = (km - self.mean_kms) / self.std_kms
-            s_p = (price - self.mean_prices) / self.std_prices
+            s_km = (km - self.mean_kms) / self.std_kms if self.std_kms != 0 else (km - self.mean_kms)
+            s_p = (price - self.mean_prices) / self.std_prices if self.std_prices != 0 else (price - self.mean_prices)
             standardized_kms.append(s_km)
             standardized_prices.append(s_p)
         self.data["standardized_kms"] = standardized_kms
@@ -189,10 +189,10 @@ class Irma():
         return (f"error: {self.newcost:.2E}, \tthetas: [{self.theta0}, \t{self.theta1}], \tlr: {self.learning_rate}")
         
 if __name__ == "__main__" :
-    datasetto =  Dataset(path = "data.csv")
+    datasetto =  Dataset(path = "data_copy.csv")
     t = time.time()
     irma = Irma(datasetto)
-    irma.training_loop(plot = False)
+    irma.training_loop(plot = True)
     # new_infos = {"t0" : irma.theta0, "t1" : irma.theta1}
     # with open("t0_t1.json", "w") as f:
     #     json.dump(new_infos, f)
