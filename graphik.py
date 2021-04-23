@@ -6,8 +6,7 @@ import time
 from math import log
 
 class Graph():
-    def __init__(self, irma, interactif=False):
-        self.interactif = interactif
+    def __init__(self, irma,):
         self.linear_line = None
         self.mse_curve = None
         self.init_linear_graph(irma)
@@ -25,8 +24,7 @@ class Graph():
         plt.legend()
         plt.grid(True)
         fig.canvas.manager.window.attributes("-topmost", 1)
-        if not self.interactif:
-            plt.pause(0.001)
+        plt.pause(0.001)
     
     def init_mse_graph(self):
         fig = plt.figure(2)
@@ -47,8 +45,7 @@ class Graph():
         self.remove_plot(self.linear_line)
         self.linear_y = theta0 + (theta1 * self.linear_x)
         self.linear_line = plt.plot(self.linear_x, self.linear_y, color="blue", label="predict function")
-        if not self.interactif:
-            plt.pause(0.001)
+        plt.pause(0.001)
     
     def update_mse_graph(self, cost, episode):
         plt.figure(2)
@@ -57,4 +54,14 @@ class Graph():
         self.mse_y.append(log(cost, 10))
         self.mse_curve = plt.plot(self.mse_x, self.mse_y, color="orange", label="cost evolution")
         plt.pause(0.001)
+    
+    def save_and_show(lr_name, mse_name):
+        plt.figure(1)
+        plt.savefig(lr_name)
+        print(f"linear_regression graph has been saved in '{lr_name}'")
+        plt.figure(2)
+        plt.savefig(mse_name)
+        print(f"MSE evolution graph has been saved in '{mse_name}'")
+        plt.show()
+        # plt.close()
     

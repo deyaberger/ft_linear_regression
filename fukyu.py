@@ -3,7 +3,8 @@ import time
 import matplotlib.pyplot as plt
 from graphik import Graph
 import numpy as np
-import json
+import argparse
+import pickle
 
 
 class Datapoint():
@@ -88,7 +89,7 @@ class Irma():
         self.middletheta1 = 0.0
         self.learning_rate = 0.01
         self.learning_rate_decay = 1.0 / 20
-        self.minimal_improvement = 0.000001
+        self.minimal_improvement = 0.0000001
         self.newcost = 0
         self.oldcost = 0
         self.middle_cost = 0
@@ -106,20 +107,23 @@ class Irma():
     def squared_error_datapoint(self, datapoint, theta0, theta1):
         return ((self.error_datapoint(datapoint, theta0, theta1))**2)
     
-
+    
     def mean_squared_error_dataset(self, theta0, theta1):
         total_error = 0.0
         for elem in self.dataset:
             total_error += self.squared_error_datapoint(elem, theta0, theta1)
         return (total_error / (2 * len(self.dataset)))
     
+    
     def middle_thetas(self):
         self.middle_theta0 = (self.theta0 + self.oldtheta0) / 2
         self.middle_theta1 = (self.theta1 + self.oldtheta1) / 2
 
+
     def update_middle_error(self):
         self.middle_thetas()
         self.middle_cost = self.mean_squared_error_dataset(self.middle_theta0, self.middle_theta1)
+
 
     def update_thetas(self):
         self.oldtheta0 = self.theta0
@@ -128,7 +132,7 @@ class Irma():
         sum_errors_t1 = 0.0
         for elem in self.dataset:
             sum_errors_t0 += self.error_datapoint(elem, self.theta0, self.theta1)
-            sum_errors_t1 += (self.error_datapoint(elem, self.theta0, self.theta1) * elem.standardized_km) ### TODO normalized_km
+            sum_errors_t1 += (self.error_datapoint(elem, self.theta0, self.theta1) * elem.standardized_km)
         temp0 = self.theta0 - (self.learning_rate / len(self.dataset) * sum_errors_t0)
         temp1 = self.theta1 - (self.learning_rate / len(self.dataset) * sum_errors_t1)
         self.theta0 = temp0
@@ -145,26 +149,24 @@ class Irma():
                 return True
         return cost_is_changing
     
+    
     def decrease_and_assign(self, theta0, theta1):
         self.learning_rate = self.learning_rate * self.learning_rate_decay
         self.theta0, self.theta1 = theta0, theta1
         
 
-    def training_loop(self, plot=False):
+    def training_loop(self, args):
         go_on = True
-        if plot == True:
+        if args.plot == "on":
             graphismus = Graph(irma)
-            # time.sleep(2)
         self.newcost = self.mean_squared_error_dataset(self.theta0, self.theta1)
-        print(self)
+        print(f"\nbefore training:\t{self}")
+        first_error = self.newcost
         i = 0
         while (go_on):
-            if plot == True:
+            if args.plot == "on":
                 graphismus.update_linear_graph(self.theta0, self.theta1)
                 graphismus.update_mse_graph(self.newcost, i)
-                if graphismus.interactif == True:
-                    plt.figure(1) 
-                    plt.waitforbuttonpress()
             tmpoldcost = self.oldcost
             self.oldcost = self.newcost
             self.update_thetas()
@@ -178,28 +180,43 @@ class Irma():
                 self.theta0, self.theta1 = self.oldtheta0, self.oldtheta1
                 self.newcost = self.oldcost
                 self.oldcost = tmpoldcost
-            # print(self)
             i += 1
-
+        print(f"\nafter training: \t{self}")
+        error_diminution = (1 - (self.newcost / first_error)) * 100
+        print(f"\nThanks to the training, we have decreased our prediction error of : {round(error_diminution)}%")
+        if args.plot == "on":
+            save_and_show(args.lr_name, args.mse_name)
+            
             
     def __str__(self):
-        return (f"error: {self.newcost:.2E}, \tthetas: [{self.theta0}, \t{self.theta1}], \tlr: {self.learning_rate}")
+        return (f"error: {round(self.newcost, 5)}, \tthetas: [{round(self.theta0, 5)}, \t{round(self.theta1, 5)}], \tlr: {round(self.learning_rate, 5)}")
 
     def __repr__(self):
-        return (f"error: {self.newcost:.2E}, \tthetas: [{self.theta0}, \t{self.theta1}], \tlr: {self.learning_rate}")
-        
+        return (f"error: {round(self.newcost, 5)}, \tthetas: [{round(self.theta0, 5)}, \t{round(self.theta1, 5)}], \tlr: {round(self.learning_rate, 5)}")
+    
+    
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='ft_linear_regression')
+    parser.add_argument('--plot', type=str, default="off",
+                        help='Enter "on" if you want to display the dataset with linear regression and the cost curve while training')
+    parser.add_argument('--infos', type=str, default="infos.pkl",
+                        help='Enter the path and name of the pickle file where to save infos at the end of the training')
+    parser.add_argument('--lr_name', type=str, default="lr_graph.jpg",
+                        help='Enter the path and name of the jpg file where to save the linear regression graph at the end of the training')
+    parser.add_argument('--mse_name', type=str, default="mse_graph.jpg",
+                        help='Enter the path and name of the jpg file where to save the MSE evolution graph at the end of the training')
+    args = parser.parse_args()
+    return (args)
+    
+def save_training_results(irma, datasetto, file_name):
+    infos = {"t0" : irma.theta0, "t1" : irma.theta1, "mean_kms" : datasetto.mean_kms, "std_kms" : datasetto.std_kms, "std_prices": datasetto.std_prices, "mean_prices" : datasetto.mean_prices}
+    with open(file_name, "wb") as f:
+        pickle.dump(infos, f)
+    print(f"\nInfos about Thetas and coefficient for standardization have been save in '{file_name}'\n")
+
 if __name__ == "__main__" :
-    datasetto =  Dataset(path = "data_copy.csv")
-    t = time.time()
+    args = parse_arguments()
+    datasetto =  Dataset(path = "data.csv")
     irma = Irma(datasetto)
-    irma.training_loop(plot = True)
-    # new_infos = {"t0" : irma.theta0, "t1" : irma.theta1}
-    # with open("t0_t1.json", "w") as f:
-    #     json.dump(new_infos, f)
-    # with open("t0_t1.json", "r") as f:
-    #     infos = json.load(f)
-    # graphikus = Graph(irma)
-    # graphikus.update_linear_graph(infos["t0"], infos["t1"])
-    t1 = time.time()
-    print(f"total time = {t1 - t}")
-    plt.show()
+    irma.training_loop(args)
+    save_training_results(irma, datasetto, args.infos)
