@@ -43,9 +43,8 @@ def get_km():
 def check_info_file(args):
     if args.reset or not os.path.exists(args.infos):
         infos = {"t0" : 0, "t1" : 0, "mean_kms" : 0, "std_kms" : 0, "std_prices": 0, "mean_prices" : 0}
-        if args.reset:
-            with open(args.infos, "wb") as f:
-                pickle.dump(infos, f)
+        with open(args.infos, "wb") as f:
+            pickle.dump(infos, f)
     with open(args.infos, "rb") as f:
         infos = pickle.load(f)
     return (infos)
