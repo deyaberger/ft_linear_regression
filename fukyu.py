@@ -67,7 +67,7 @@ class Dataset():
 
     def __iter__(self):
         return (self)
-    
+
 
     def __next__(self):
         if self.index < len(self.data):
@@ -157,14 +157,14 @@ class Irma():
 
     def training_loop(self, args):
         go_on = True
-        if args.plot == "on":
+        if args.plot == True:
             graphismus = Graph(irma)
         self.newcost = self.mean_squared_error_dataset(self.theta0, self.theta1)
         print(f"\nbefore training:\t{self}")
         first_error = self.newcost
         i = 0
         while (go_on):
-            if args.plot == "on":
+            if args.plot == True:
                 graphismus.update_linear_graph(self.theta0, self.theta1)
                 graphismus.update_mse_graph(self.newcost, i)
             tmpoldcost = self.oldcost
@@ -184,8 +184,8 @@ class Irma():
         print(f"\nafter training: \t{self}")
         error_diminution = (1 - (self.newcost / first_error)) * 100
         print(f"\nThanks to the training, we have decreased our prediction error of : {round(error_diminution)}%")
-        if args.plot == "on":
-            save_and_show(args.lr_name, args.mse_name)
+        if args.plot == True:
+            graphismus.save_and_show(args.lr_name, args.mse_name)
             
             
     def __str__(self):
@@ -197,7 +197,7 @@ class Irma():
     
 def parse_arguments():
     parser = argparse.ArgumentParser(description='ft_linear_regression')
-    parser.add_argument('--plot', type=str, default="off",
+    parser.add_argument('--plot', action="store_true",
                         help='Enter "on" if you want to display the dataset with linear regression and the cost curve while training')
     parser.add_argument('--infos', type=str, default="infos.pkl",
                         help='Enter the path and name of the pickle file where to save infos at the end of the training')

@@ -3,7 +3,6 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-from math import log
 
 class Graph():
     def __init__(self, irma,):
@@ -14,12 +13,20 @@ class Graph():
     
     def init_linear_graph(self, irma):
         fig = plt.figure(1)
-        plt.title("Linear Regression")
+        plt.title("Linear Regression over dataset")
         plt.xlabel("Mileage (km)")
         plt.ylabel("Prices (USD)")
+        kms = list(irma.dataset.kms)
+        prices = list(irma.dataset.prices)
+        points = plt.scatter(kms, prices, color = "pink", label="original dataset values")
+        plt.waitforbuttonpress(timeout=10)
+        plt.clf()
+        plt.title("Linear Regression over dataset")
+        plt.xlabel("Standardized Mileage (km)")
+        plt.ylabel("Standardized Prices (USD)")
         kms = list(irma.dataset.standardized_kms)
         prices = list(irma.dataset.standardized_prices)
-        plt.scatter(kms, prices, color = "red", label="dataset values")
+        plt.scatter(kms, prices, color = "red", label="standardized dataset values")
         self.linear_x = np.linspace(irma.dataset.standardized_kms.min(), irma.dataset.standardized_kms.max())
         plt.legend()
         plt.grid(True)
@@ -28,9 +35,9 @@ class Graph():
     
     def init_mse_graph(self):
         fig = plt.figure(2)
-        plt.title("MSE cost evolution")
-        plt.xlabel("Episode")
-        plt.ylabel("Cost")
+        plt.title("Middle squared error (MSE)")
+        plt.xlabel("Episode (nb of training iterations)")
+        plt.ylabel("MSE")
         self.mse_x, self.mse_y = [], []
         fig.canvas.manager.window.attributes("-topmost", 0)
         plt.pause(0.001)
@@ -45,23 +52,25 @@ class Graph():
         self.remove_plot(self.linear_line)
         self.linear_y = theta0 + (theta1 * self.linear_x)
         self.linear_line = plt.plot(self.linear_x, self.linear_y, color="blue", label="predict function")
+        plt.legend()
         plt.pause(0.001)
     
     def update_mse_graph(self, cost, episode):
         plt.figure(2)
         self.remove_plot(self.mse_curve)
         self.mse_x.append(episode)
-        self.mse_y.append(log(cost, 10))
-        self.mse_curve = plt.plot(self.mse_x, self.mse_y, color="orange", label="cost evolution")
+        self.mse_y.append(cost)
+        self.mse_curve = plt.plot(self.mse_x, self.mse_y, color="orange")
         plt.pause(0.001)
     
-    def save_and_show(lr_name, mse_name):
+    def save_and_show(self, lr_name, mse_name):
         plt.figure(1)
         plt.savefig(lr_name)
-        print(f"linear_regression graph has been saved in '{lr_name}'")
+        print(f"\nlinear_regression graph has been saved in '{lr_name}'")
         plt.figure(2)
         plt.savefig(mse_name)
         print(f"MSE evolution graph has been saved in '{mse_name}'")
-        plt.show()
-        # plt.close()
+        print("\nClosing graphs windows in 2 second...")
+        time.sleep(2)
+        plt.close("all")
     
