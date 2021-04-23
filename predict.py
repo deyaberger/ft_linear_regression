@@ -43,8 +43,12 @@ def get_km():
 def check_info_file(args):
     if args.reset or not os.path.exists(args.infos):
         infos = {"t0" : 0, "t1" : 0, "mean_kms" : 0, "std_kms" : 0, "std_prices": 0, "mean_prices" : 0}
-        with open(args.infos, "wb") as f:
-            pickle.dump(infos, f)
+        if args.reset:
+            with open(args.infos, "wb") as f:
+                pickle.dump(infos, f)
+    with open(args.infos, "rb") as f:
+        infos = pickle.load(f)
+    return (infos)
 
 class Predict():
     def __init__(self, infos, km):
@@ -88,9 +92,7 @@ class Predict():
 
 if __name__ == "__main__":
     args = parse_arguments()
-    check_info_file(args)
-    with open(args.infos, "rb") as f:
-        infos = pickle.load(f)
+    infos = check_info_file(args)
     if args.compare:
         km = None
     else:
