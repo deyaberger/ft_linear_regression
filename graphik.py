@@ -1,5 +1,3 @@
-import matplotlib
-matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import numpy as np
 import time
@@ -19,7 +17,7 @@ class Graph():
         kms = list(irma.dataset.kms)
         prices = list(irma.dataset.prices)
         points = plt.scatter(kms, prices, color = "pink", label="original dataset values")
-        plt.waitforbuttonpress(timeout=10)
+        plt.pause(3)
         plt.clf()
         plt.title("Linear Regression over dataset")
         plt.xlabel("Standardized Mileage (km)")
@@ -30,7 +28,6 @@ class Graph():
         self.linear_x = np.linspace(irma.dataset.standardized_kms.min(), irma.dataset.standardized_kms.max())
         plt.legend()
         plt.grid(True)
-        fig.canvas.manager.window.attributes("-topmost", 1)
         plt.pause(0.001)
     
     def init_mse_graph(self):
@@ -39,7 +36,6 @@ class Graph():
         plt.xlabel("Episode (nb of training iterations)")
         plt.ylabel("MSE")
         self.mse_x, self.mse_y = [], []
-        fig.canvas.manager.window.attributes("-topmost", 0)
         plt.pause(0.001)
     
     def remove_plot(self, a_plot):
@@ -70,7 +66,7 @@ class Graph():
         plt.figure(2)
         plt.savefig(mse_name)
         print(f"MSE evolution graph has been saved in '{mse_name}'")
-        print("\nClosing graphs windows in 2 second...")
-        time.sleep(2)
+        print("\nClosing graphs windows in 3 second...")
+        time.sleep(3)
         plt.close("all")
     
