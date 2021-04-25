@@ -191,7 +191,7 @@ class Irma():
         error_diminution = (1 - (self.newcost / first_error)) * 100
         print(f"\nThanks to the training, we have decreased our prediction error of : {round(error_diminution)}%")
         self.retrieve_original_thetas(datasetto)
-        print("\nAnd finally, after 'destandardizing' our results, theta0 = [{self.original_theta0}] and theta1 = [{self.original_theta1}]")
+        print(f"\nAnd finally, after 'destandardizing' our results, theta0 = [{self.original_theta0}] and theta1 = [{self.original_theta1}]")
         if args.plot == True:
             graphismus.retrieve_original_values(self)
             graphismus.save_and_show(args.lr_name, args.mse_name)
@@ -219,7 +219,6 @@ def parse_arguments():
     
 def save_training_results(irma, datasetto, file_name):
     infos = {"t0" : irma.original_theta0, "t1" : irma.original_theta1}
-    print(f"after destandardization: t0 = {irma.original_theta0}, t1 = {irma.original_theta1}")
     with open(file_name, "wb") as f:
         pickle.dump(infos, f)
     print(f"\nValues of Theta0 and Theta1 have been save in '{file_name}'\n")
