@@ -83,6 +83,8 @@ class Irma():
         self.dataset = dataset 
         self.theta0 = 0.0
         self.theta1 = 0.0
+        self.original_theta0 = self.theta0
+        self.original_theta1 = self.theta1
         self.oldtheta0 = 0.0
         self.oldtheta1 = 0.0
         self.middletheta0 = 0.0
@@ -154,6 +156,10 @@ class Irma():
         self.learning_rate = self.learning_rate * self.learning_rate_decay
         self.theta0, self.theta1 = theta0, theta1
         
+    def retrieve_original_thetas(self, datasetto):
+        self.original_theta0 = (datasetto.std_prices * self.theta0) - (((datasetto.std_prices * self.theta1) * datasetto.mean_kms) / datasetto.std_kms) + datasetto.mean_prices
+        self.original_theta1 = ((datasetto.std_prices * self.theta1) / datasetto.std_kms)
+        
 
     def training_loop(self, args):
         go_on = True
@@ -184,10 +190,13 @@ class Irma():
         print(f"\nafter training: \t{self}")
         error_diminution = (1 - (self.newcost / first_error)) * 100
         print(f"\nThanks to the training, we have decreased our prediction error of : {round(error_diminution)}%")
+        self.retrieve_original_thetas(datasetto)
+        print("\nAnd finally, after 'destandardizing' our results, theta0 = [{self.original_theta0}] and theta1 = [{self.original_theta1}]")
         if args.plot == True:
+            graphismus.retrieve_original_values(self)
             graphismus.save_and_show(args.lr_name, args.mse_name)
-            
-            
+    
+
     def __str__(self):
         return (f"error: {round(self.newcost, 5)}, \tthetas: [{round(self.theta0, 5)}, \t{round(self.theta1, 5)}], \tlr: {round(self.learning_rate, 5)}")
 
@@ -209,11 +218,13 @@ def parse_arguments():
     return (args)
     
 def save_training_results(irma, datasetto, file_name):
-    infos = {"t0" : irma.theta0, "t1" : irma.theta1, "mean_kms" : datasetto.mean_kms, "std_kms" : datasetto.std_kms, "std_prices": datasetto.std_prices, "mean_prices" : datasetto.mean_prices}
+    infos = {"t0" : irma.original_theta0, "t1" : irma.original_theta1}
+    print(f"after destandardization: t0 = {irma.original_theta0}, t1 = {irma.original_theta1}")
     with open(file_name, "wb") as f:
         pickle.dump(infos, f)
-    print(f"\nInfos about Thetas and coefficient for standardization have been save in '{file_name}'\n")
+    print(f"\nValues of Theta0 and Theta1 have been save in '{file_name}'\n")
 
+    
 if __name__ == "__main__" :
     args = parse_arguments()
     datasetto =  Dataset(path = "data.csv")

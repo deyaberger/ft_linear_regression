@@ -41,7 +41,7 @@ def get_km():
     return (km)
 
 def check_info_file(args):
-    infos = {"t0" : 0, "t1" : 0, "mean_kms" : 0, "std_kms" : 0, "std_prices": 0, "mean_prices" : 0}
+    infos = {"t0" : 0, "t1" : 0}
     if args.reset:
         with open(args.infos, "wb") as f:
             pickle.dump(infos, f)
@@ -56,29 +56,9 @@ class Predict():
         self.km = km
         self.theta0 = infos["t0"] if infos else 0
         self.theta1 = infos["t1"] if infos else 0
-        self.mean_kms = infos["mean_kms"] if infos else 0
-        self.std_kms = infos["std_kms"] if infos else 0
-        self.mean_prices = infos["mean_prices"] if infos else 0
-        self.std_prices = infos["std_prices"] if infos else 0
-        self.s_km = None
-        if self.km:
-            self.standardize_km()
-
-    def __str__(self):
-        return (f"km = {self.km}, theta0 = {self.theta0}, theta1 = {self.theta1}, mean_kms = {self.mean_kms}, std_kms = {self.std_kms}, mean_prices = {self.mean_prices}, std_prices = {self.std_prices}, s_km = {self.s_km}")
-
-    def standardize_km(self):
-        self.s_km = (self.km - self.mean_kms) / self.std_kms if self.std_kms != 0 else (km - self.mean_kms)
-
-    def unstandardized_price(self, s_p):
-        price = (s_p * self.std_prices) + self.mean_prices
-        return (price)
 
     def predict_price(self):
-        s_p = self.theta0 + (self.theta1 * self.s_km)
-        price = self.unstandardized_price(s_p)
-        if price < 0:
-            return (0)
+        price = self.theta0 + (self.theta1 * self.km)
         return (price)
 
     def print_comparisions(self, data_path):
@@ -86,7 +66,6 @@ class Predict():
         df["predicted_prices"] = [0] * df.shape[0]
         for i in df.index:
             self.km = df["km"][i]
-            self.standardize_km()
             df.at[i, "predicted_prices"] = int(self.predict_price())
         print(df[["km", 'price', 'predicted_prices']])
 

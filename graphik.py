@@ -59,6 +59,24 @@ class Graph():
         self.mse_curve = plt.plot(self.mse_x, self.mse_y, color="orange")
         plt.pause(0.001)
     
+    def retrieve_original_values(self, irma):
+        plt.pause(3)
+        fig = plt.figure(1)
+        fig.clf()
+        plt.title("Linear Regression over dataset")
+        plt.xlabel("Mileage (km)")
+        plt.ylabel("Prices (USD)")
+        kms = list(irma.dataset.kms)
+        prices = list(irma.dataset.prices)
+        points = plt.scatter(kms, prices, color = "pink", label="original dataset values")
+        self.linear_x = np.linspace(0, irma.dataset.kms.max())
+        self.linear_y = irma.original_theta0 + (irma.original_theta1 * self.linear_x)
+        self.linear_line = plt.plot(self.linear_x, self.linear_y, color="blue", label="predict function")
+        plt.legend()
+        plt.grid(True)
+        plt.pause(2)
+        
+    
     def save_and_show(self, lr_name, mse_name):
         plt.figure(1)
         plt.savefig(lr_name)
