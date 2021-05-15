@@ -4,7 +4,7 @@ try:
     import pandas
     import sys
     import os
-except NameError as e:
+except ModuleNotFoundError as e:
     print(e)
     print('[Import error] Please run <pip install -r requirements.txt>')
     exit()

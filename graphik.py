@@ -1,8 +1,7 @@
 try:
     import matplotlib.pyplot as plt
     import numpy as np
-    import time
-except NameError as e:
+except ModuleNotFoundError as e:
     print(e)
     print('[Import error] Please run <pip install -r requirements.txt>')
     exit()
@@ -22,7 +21,7 @@ class Graph():
         kms = list(irma.dataset.kms)
         prices = list(irma.dataset.prices)
         points = plt.scatter(kms, prices, color = "pink", label="original dataset values")
-        plt.pause(3)
+        plt.pause(0.001)
         plt.waitforbuttonpress()
         plt.clf()
         plt.title("Linear Regression over dataset")
@@ -70,9 +69,6 @@ class Graph():
         
     
     def retrieve_original_values(self, irma):
-        #plt.pause(3)
-        plt.pause(0.1)
-        plt.waitforbuttonpress()
         fig = plt.figure(1)
         fig.clf()
         plt.title("Linear Regression over dataset")
@@ -86,7 +82,7 @@ class Graph():
         self.linear_line = plt.plot(self.linear_x, self.linear_y, color="blue", label="predict function")
         plt.legend()
         plt.grid(True)
-        plt.pause(2)
+        plt.pause(0.001)
         plt.waitforbuttonpress()
         
         
@@ -98,7 +94,5 @@ class Graph():
         plt.figure(2)
         plt.savefig(mse_name)
         print(f"MSE evolution graph has been saved in '{mse_name}'")
-        print("\nClosing graphs windows in 3 second...")
-        time.sleep(3)
         plt.close("all")
     

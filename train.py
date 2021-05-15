@@ -1,11 +1,9 @@
 try:
     import pandas as pd
-    import matplotlib.pyplot as plt
     from graphik import Graph
-    import numpy as np
     import argparse
     import pickle
-except NameError as e:
+except ModuleNotFoundError as e:
     print(e)
     print('[Import error] Please run <pip install -r requirements.txt>')
     exit()
