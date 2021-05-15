@@ -1,10 +1,14 @@
-import pandas as pd
-import time
-import matplotlib.pyplot as plt
-from graphik import Graph
-import numpy as np
-import argparse
-import pickle
+try:
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    from graphik import Graph
+    import numpy as np
+    import argparse
+    import pickle
+except NameError as e:
+    print(e)
+    print('[Import error] Please run <pip install -r requirements.txt>')
+    exit()
 
 
 class Datapoint():
@@ -191,7 +195,7 @@ class Irma():
         error_diminution = (1 - (self.newcost / first_error)) * 100
         print(f"\nThanks to the training, we have decreased our prediction error of : {round(error_diminution)}%")
         self.retrieve_original_thetas(datasetto)
-        print(f"\nAnd finally, after 'destandardizing' our results, theta0 = [{self.original_theta0}] and theta1 = [{self.original_theta1}]")
+        print(f"\n--> And finally, after 'destandardizing' our results, theta0 = [{self.original_theta0}] and theta1 = [{self.original_theta1}]")
         if args.plot == True:
             graphismus.retrieve_original_values(self)
             graphismus.save_and_show(args.lr_name, args.mse_name)
@@ -208,8 +212,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description='ft_linear_regression')
     parser.add_argument('--plot', action="store_true",
                         help='Enter "on" if you want to display the dataset with linear regression and the cost curve while training')
-    parser.add_argument('--infos', type=str, default="infos.pkl",
-                        help='Enter the path and name of the pickle file where to save infos at the end of the training')
+    parser.add_argument('--weights', type=str, default="weights.pkl",
+                        help='Enter the path and name of the pickle file where to save weights at the end of the training')
     parser.add_argument('--lr_name', type=str, default="lr_graph.jpg",
                         help='Enter the path and name of the jpg file where to save the linear regression graph at the end of the training')
     parser.add_argument('--mse_name', type=str, default="mse_graph.jpg",
@@ -218,9 +222,9 @@ def parse_arguments():
     return (args)
     
 def save_training_results(irma, datasetto, file_name):
-    infos = {"t0" : irma.original_theta0, "t1" : irma.original_theta1}
+    weights = {"t0" : irma.original_theta0, "t1" : irma.original_theta1}
     with open(file_name, "wb") as f:
-        pickle.dump(infos, f)
+        pickle.dump(weights, f)
     print(f"\nValues of Theta0 and Theta1 have been save in '{file_name}'\n")
 
     
@@ -229,4 +233,4 @@ if __name__ == "__main__" :
     datasetto =  Dataset(path = "data.csv")
     irma = Irma(datasetto)
     irma.training_loop(args)
-    save_training_results(irma, datasetto, args.infos)
+    save_training_results(irma, datasetto, args.weights)

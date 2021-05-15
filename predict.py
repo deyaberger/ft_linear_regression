@@ -1,18 +1,21 @@
-import argparse
-import pickle
-import pandas
-import sys
-import os
+try:
+    import argparse
+    import pickle
+    import pandas
+    import sys
+    import os
+except NameError as e:
+    print(e)
+    print('[Import error] Please run <pip install -r requirements.txt>')
+    exit()
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--infos', type=str, default="infos.pkl",
-                        help='Enter the path and name of the pickle file where to find infos for the prediction')
+    parser.add_argument('--weights', type=str, default="weights.pkl",
+                        help='Enter the path and name of the pickle file where to find weights for the prediction')
     parser.add_argument("--compare", help="show comparision between actual and predicted prices",
                     action="store_true")
     parser.add_argument("--reset", help="Reset thetas to their initial values before training",
-                    action="store_true")
-    parser.add_argument("--round", help="Reset thetas to their initial values before training",
                     action="store_true")
     args = parser.parse_args()
     return (args)
@@ -40,24 +43,28 @@ def get_km():
     km = float(arg)
     return (km)
 
-def check_info_file(args):
-    infos = {"t0" : 0, "t1" : 0}
+def check_weights_file(args):
+    weights = {"t0" : 0, "t1" : 0}
     if args.reset:
-        with open(args.infos, "wb") as f:
-            pickle.dump(infos, f)
-    if os.path.exists(args.infos):
-        with open(args.infos, "rb") as f:
-            infos = pickle.load(f)
-    return (infos)
+        with open(args.weights, "wb") as f:
+            pickle.dump(weights, f)
+        print(f"--> Reseting the values of thetas to 0, saving it in the file '{args.weights}'\n")
+    if os.path.exists(args.weights):
+        with open(args.weights, "rb") as f:
+            weights = pickle.load(f)
+            if not args.reset:
+                print(f"--> Loading the values of thetas from the file '{args.weights}'\n")
+    return (weights)
 
 class Predict():
-    def __init__(self, infos, km):
+    def __init__(self, weights, km):
         self.args = args
         self.km = km
-        self.theta0 = infos["t0"] if infos else 0
-        self.theta1 = infos["t1"] if infos else 0
+        self.theta0 = weights["t0"] if weights else 0
+        self.theta1 = weights["t1"] if weights else 0
 
     def predict_price(self):
+        print(f"\nRounded values of thetas for the prediction:\ntheta0 = [{round(self.theta0, 3)}]\ttheta1 = [{round(self.theta1, 3)}]")
         price = self.theta0 + (self.theta1 * self.km)
         return (price)
 
@@ -71,16 +78,13 @@ class Predict():
 
 if __name__ == "__main__":
     args = parse_arguments()
-    infos = check_info_file(args)
+    weights = check_weights_file(args)
     if args.compare:
         km = None
     else:
         km = get_km()
-    irma = Predict(infos, km)
+    irma = Predict(weights, km)
     if args.compare:
         irma.print_comparisions("data.csv")
     else:
-        if args.round == True:
-            print(f"\nThe predicted price for a car that has done {km}km is: {round(irma.predict_price())}$")
-        else:
-            print(f"\nThe predicted price for a car that has done {km}km is: {irma.predict_price()}$")         
+        print(f"\n--> The predicted price for a car that has done {km}km is: {irma.predict_price()}$")         

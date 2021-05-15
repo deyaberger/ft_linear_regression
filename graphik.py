@@ -1,9 +1,14 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import time
+try:
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import time
+except NameError as e:
+    print(e)
+    print('[Import error] Please run <pip install -r requirements.txt>')
+    exit()
 
 class Graph():
-    def __init__(self, irma,):
+    def __init__(self, irma):
         self.linear_line = None
         self.mse_curve = None
         self.init_linear_graph(irma)
@@ -18,10 +23,11 @@ class Graph():
         prices = list(irma.dataset.prices)
         points = plt.scatter(kms, prices, color = "pink", label="original dataset values")
         plt.pause(3)
+        plt.waitforbuttonpress()
         plt.clf()
         plt.title("Linear Regression over dataset")
-        plt.xlabel("Standardized Mileage (km)")
-        plt.ylabel("Standardized Prices (USD)")
+        plt.xlabel("Standardized Mileage")
+        plt.ylabel("Standardized Prices")
         kms = list(irma.dataset.standardized_kms)
         prices = list(irma.dataset.standardized_prices)
         plt.scatter(kms, prices, color = "red", label="standardized dataset values")
@@ -29,6 +35,7 @@ class Graph():
         plt.legend()
         plt.grid(True)
         plt.pause(0.001)
+        plt.waitforbuttonpress()
     
     def init_mse_graph(self):
         fig = plt.figure(2)
@@ -50,6 +57,8 @@ class Graph():
         self.linear_line = plt.plot(self.linear_x, self.linear_y, color="blue", label="predict function")
         plt.legend()
         plt.pause(0.001)
+        plt.waitforbuttonpress()
+        
     
     def update_mse_graph(self, cost, episode):
         plt.figure(2)
@@ -58,9 +67,12 @@ class Graph():
         self.mse_y.append(cost)
         self.mse_curve = plt.plot(self.mse_x, self.mse_y, color="orange")
         plt.pause(0.001)
+        
     
     def retrieve_original_values(self, irma):
-        plt.pause(3)
+        #plt.pause(3)
+        plt.pause(0.1)
+        plt.waitforbuttonpress()
         fig = plt.figure(1)
         fig.clf()
         plt.title("Linear Regression over dataset")
@@ -75,6 +87,8 @@ class Graph():
         plt.legend()
         plt.grid(True)
         plt.pause(2)
+        plt.waitforbuttonpress()
+        
         
     
     def save_and_show(self, lr_name, mse_name):
