@@ -37,9 +37,13 @@ class Dataset():
         self.standardized_prices = self.data["standardized_prices"]
 
     def import_csv(self, path):
-        self.data = pd.read_csv(path)
-        self.data["km"] = pd.to_numeric(self.data["km"], downcast="float")
-        self.data["price"] = pd.to_numeric(self.data["price"], downcast="float")
+        try:
+            self.data = pd.read_csv(path)
+            self.data["km"] = pd.to_numeric(self.data["km"], downcast="float")
+            self.data["price"] = pd.to_numeric(self.data["price"], downcast="float")
+        except Exception as e:
+            print(e)
+            exit()
     
     def get_mean_std(self):
         self.mean_kms = self.data.mean()["km"]

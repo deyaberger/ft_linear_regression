@@ -1,6 +1,7 @@
 ### FT_LINEAR_REGRESSION </br></br>
 
-## Summary
+## Subject:
+Predicting the price of a car using linear regression with gradient descent
 
 ## How to
 1. Set up </br>
@@ -13,3 +14,8 @@ run ```python3 train.py --help``` to see the options you can use</br></br>
 ```python3 predict.py```</br>
 --> Follow the instructions displayed in the terminal (enter the mileage of a car to see its predicted price)</br>
 run ```python3 predict.py --help``` to see the options you can use
+
+
+## Ploting the training:
+
+![](linear_video.gif)

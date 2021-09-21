@@ -48,12 +48,13 @@ def check_weights_file(args):
     if args.reset:
         with open(args.weights, "wb") as f:
             pickle.dump(weights, f)
-        print(f"--> Reseting the values of thetas to 0, saving it in the file '{args.weights}'\n")
+        print(f"--> Reseting the values of thetas to 0, saving it in the file '{args.weights}'")
     if os.path.exists(args.weights):
         with open(args.weights, "rb") as f:
             weights = pickle.load(f)
             if not args.reset:
-                print(f"--> Loading the values of thetas from the file '{args.weights}'\n")
+                print(f"--> Loading the values of thetas from the file '{args.weights}'")
+    print(f"theta0 = [{round(weights['t0'], 3)}]\ttheta1 = [{round(weights['t1'], 3)}]\n")
     return (weights)
 
 class Predict():
@@ -64,7 +65,6 @@ class Predict():
         self.theta1 = weights["t1"] if weights else 0
 
     def predict_price(self):
-        print(f"\nRounded values of thetas for the prediction:\ntheta0 = [{round(self.theta0, 3)}]\ttheta1 = [{round(self.theta1, 3)}]")
         price = self.theta0 + (self.theta1 * self.km)
         return (price)
 
@@ -74,7 +74,8 @@ class Predict():
         for i in df.index:
             self.km = df["km"][i]
             df.at[i, "predicted_prices"] = int(self.predict_price())
-        print(df[["km", 'price', 'predicted_prices']])
+        print(f"--- Actual Prices from dataset Vs predicted prices with our linear regression: ---\n")
+        print(df[["km", 'price', 'predicted_prices']].to_string(index = False))
 
 if __name__ == "__main__":
     args = parse_arguments()
